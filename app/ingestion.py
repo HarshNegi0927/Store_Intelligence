@@ -38,7 +38,7 @@ def ingest_events(events: List[StoreEvent], db: Session = Depends(get_db)):
                 dwell_ms   = event.dwell_ms,
                 is_staff   = event.is_staff,
                 confidence = event.confidence,
-                metadata   = event.metadata.dict()
+                event_metadata = event.metadata.dict()
             )
             db.add(db_event)
             accepted += 1

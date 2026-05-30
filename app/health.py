@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
-
+from sqlalchemy import text
 from database import get_db, EventModel
 
 router = APIRouter()
@@ -16,7 +16,7 @@ def health_check(db: Session = Depends(get_db)):
     try:
         # ── DB Check ───────────────────────────────────────
         # DB alive hai?
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         return {

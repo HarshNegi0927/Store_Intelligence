@@ -29,7 +29,7 @@ class EventModel(Base):
     dwell_ms    = Column(Integer, default=0)
     is_staff    = Column(Boolean, default=False)
     confidence  = Column(Float)
-    metadata    = Column(JSON)                    
+    event_metadata = Column(JSON)                   
 
 def get_db():
     db = SessionLocal()
