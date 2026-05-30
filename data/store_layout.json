@@ -1,0 +1,222 @@
+{
+  "store_id": "STORE_BLR_001",
+  "store_name": "Brigade_Bangalore",
+  "city": "Bangalore",
+  "address": "Brigade Road, Bangalore",
+  "open_hours": {
+    "open": "10:00",
+    "close": "22:00",
+    "timezone": "Asia/Kolkata"
+  },
+  "cameras": [
+    {
+      "camera_id": "CAM_ENTRY_00",
+      "type": "entry_exit",
+      "description": "Glass door entry/exit threshold — main entrance",
+      "covers_zones": ["ENTRY_EXIT", "FOH"],
+      "notes": "Purplle backlit display visible. Used for ENTRY and EXIT event detection."
+    },
+    {
+      "camera_id": "CAM_01",
+      "type": "floor",
+      "description": "Top wall — Korean brands and skincare section",
+      "covers_zones": ["KOREAN_SKINCARE", "FACE_SHOP", "GOOD_VIBES", "DERMDOC", "MINIMALIST", "AQUALOGICA", "MAKEUP_UNIT"],
+      "notes": "Covers top product wall. FarmStay, Face Shop, Good Vibes, DermDoc, Minimalist, Aqualogica visible."
+    },
+    {
+      "camera_id": "CAM_02",
+      "type": "floor",
+      "description": "Bottom wall — mass makeup brands + PMU mirror area",
+      "covers_zones": ["ALPS", "SWISS_BEAUTY", "LAKME", "FACES_CANADA", "MAYBELLINE", "PMU", "MAKEUP_UNIT"],
+      "notes": "Covers bottom product wall. Alps, Swiss Beauty, Lakme, Faces Canada, Maybelline visible. PMU mirror on left."
+    },
+    {
+      "camera_id": "CAM_04",
+      "type": "warehouse",
+      "description": "Backroom/warehouse — NOT used for customer analytics",
+      "covers_zones": ["WAREHOUSE"],
+      "notes": "Ignore for customer metrics. Only staff present here."
+    },
+    {
+      "camera_id": "CAM_05",
+      "type": "billing",
+      "description": "Cash counter (billing) + Accessories display",
+      "covers_zones": ["CASH_COUNTER", "ACCESSORIES"],
+      "notes": "Primary billing camera. POS laptop and barcode scanner visible. Used for BILLING_QUEUE events."
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "ENTRY_EXIT",
+      "zone_name": "Entry / Exit",
+      "type": "threshold",
+      "camera_ids": ["CAM_ENTRY_00"],
+      "description": "Glass door entry and exit threshold",
+      "sku_zone": null
+    },
+    {
+      "zone_id": "FOH",
+      "zone_name": "Front of House",
+      "type": "floor",
+      "camera_ids": ["CAM_ENTRY_00", "CAM_01", "CAM_02"],
+      "description": "Main open floor area — central browsing zone",
+      "sku_zone": null
+    },
+    {
+      "zone_id": "MAKEUP_UNIT",
+      "zone_name": "Makeup Unit",
+      "type": "floor",
+      "camera_ids": ["CAM_01", "CAM_02"],
+      "description": "Central circular makeup display table",
+      "sku_zone": "MAKEUP"
+    },
+    {
+      "zone_id": "PMU",
+      "zone_name": "Permanent Makeup Unit",
+      "type": "service",
+      "camera_ids": ["CAM_02"],
+      "description": "PMU service area with vanity mirror — right corner",
+      "sku_zone": "PMU"
+    },
+    {
+      "zone_id": "CASH_COUNTER",
+      "zone_name": "Cash Counter",
+      "type": "billing",
+      "camera_ids": ["CAM_05"],
+      "description": "Billing counter with POS laptop and barcode scanner",
+      "sku_zone": null
+    },
+    {
+      "zone_id": "ACCESSORIES",
+      "zone_name": "Accessories",
+      "type": "floor",
+      "camera_ids": ["CAM_05"],
+      "description": "Accessories display — right side near billing",
+      "sku_zone": "ACCESSORIES"
+    },
+    {
+      "zone_id": "KOREAN_SKINCARE",
+      "zone_name": "Korean Skincare",
+      "type": "floor",
+      "camera_ids": ["CAM_01"],
+      "description": "FarmStay, EB Korean, The Face Shop — top left wall",
+      "sku_zone": "KOREAN_SKINCARE"
+    },
+    {
+      "zone_id": "GOOD_VIBES",
+      "zone_name": "Good Vibes",
+      "type": "floor",
+      "camera_ids": ["CAM_01"],
+      "description": "Good Vibes section — top wall",
+      "sku_zone": "GOOD_VIBES"
+    },
+    {
+      "zone_id": "DERMDOC",
+      "zone_name": "DermDoc",
+      "type": "floor",
+      "camera_ids": ["CAM_01"],
+      "description": "DermDoc skincare section — top wall",
+      "sku_zone": "DERMDOC"
+    },
+    {
+      "zone_id": "MINIMALIST",
+      "zone_name": "Minimalist",
+      "type": "floor",
+      "camera_ids": ["CAM_01"],
+      "description": "Minimalist skincare section — top wall",
+      "sku_zone": "MINIMALIST"
+    },
+    {
+      "zone_id": "AQUALOGICA",
+      "zone_name": "Aqualogica",
+      "type": "floor",
+      "camera_ids": ["CAM_01"],
+      "description": "Aqualogica section — top wall",
+      "sku_zone": "AQUALOGICA"
+    },
+    {
+      "zone_id": "MAYBELLINE",
+      "zone_name": "Maybelline",
+      "type": "floor",
+      "camera_ids": ["CAM_02"],
+      "description": "Maybelline makeup section — bottom wall right",
+      "sku_zone": "MAYBELLINE"
+    },
+    {
+      "zone_id": "FACES_CANADA",
+      "zone_name": "Faces Canada",
+      "type": "floor",
+      "camera_ids": ["CAM_02"],
+      "description": "Faces Canada makeup section — bottom wall",
+      "sku_zone": "FACES_CANADA"
+    },
+    {
+      "zone_id": "LAKME",
+      "zone_name": "Lakme",
+      "type": "floor",
+      "camera_ids": ["CAM_02"],
+      "description": "Lakme section — bottom wall",
+      "sku_zone": "LAKME"
+    },
+    {
+      "zone_id": "SWISS_BEAUTY",
+      "zone_name": "Swiss Beauty",
+      "type": "floor",
+      "camera_ids": ["CAM_02"],
+      "description": "Swiss Beauty section — bottom wall",
+      "sku_zone": "SWISS_BEAUTY"
+    },
+    {
+      "zone_id": "ALPS",
+      "zone_name": "Alps Goodness",
+      "type": "floor",
+      "camera_ids": ["CAM_02"],
+      "description": "Alps Goodness section — bottom wall left",
+      "sku_zone": "ALPS"
+    },
+    {
+      "zone_id": "FRAGRANCE",
+      "zone_name": "Fragrance",
+      "type": "floor",
+      "camera_ids": ["CAM_01", "CAM_02"],
+      "description": "Fragrance section — center left area",
+      "sku_zone": "FRAGRANCE"
+    },
+    {
+      "zone_id": "NAIL_UNIT",
+      "zone_name": "Nail Unit",
+      "type": "service",
+      "camera_ids": ["CAM_01"],
+      "description": "Nail unit / nail colour section — center left",
+      "sku_zone": "NAIL"
+    },
+    {
+      "zone_id": "WAREHOUSE",
+      "zone_name": "Warehouse",
+      "type": "backroom",
+      "camera_ids": ["CAM_04"],
+      "description": "Backroom storage — excluded from all customer metrics",
+      "sku_zone": null
+    }
+  ],
+  "cross_camera_overlap": [
+    {
+      "cameras": ["CAM_01", "CAM_02"],
+      "overlap_zone": "MAKEUP_UNIT",
+      "dedup_required": true,
+      "notes": "Same customers may appear in both CAM_01 and CAM_02 near the central makeup table"
+    },
+    {
+      "cameras": ["CAM_ENTRY_00", "CAM_01"],
+      "overlap_zone": "FOH",
+      "dedup_required": true,
+      "notes": "Entry camera and CAM_01 both cover front of house area"
+    }
+  ],
+  "pos_correlation": {
+    "billing_zone": "CASH_COUNTER",
+    "billing_camera": "CAM_05",
+    "conversion_window_minutes": 5,
+    "notes": "A visitor in CASH_COUNTER zone within 5 min before a POS transaction counts as converted"
+  }
+}
