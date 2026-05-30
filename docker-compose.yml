@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+
+  # ── FastAPI App ──────────────────────────────────────────
+  api:
+    build: .
+    container_name: store_intelligence_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://purplle:purplle123@db:5432/storedb
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── PostgreSQL Database ──────────────────────────────────
+  db:
+    image: postgres:15
+    container_name: store_intelligence_db
+    environment:
+      - POSTGRES_USER=purplle
+      - POSTGRES_PASSWORD=purplle123
+      - POSTGRES_DB=storedb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U purplle"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
