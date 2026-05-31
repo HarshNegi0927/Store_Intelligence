@@ -7,45 +7,39 @@ from database import get_db, EventModel
 
 router = APIRouter()
 
-# ─── GET /stores/{store_id}/funnel ────────────────────────
 @router.get("/stores/{store_id}/funnel")
 def get_funnel(store_id: str, db: Session = Depends(get_db)):
 
     today = date.today()
 
-    # Base — sirf customers, staff nahi
     base = db.query(EventModel).filter(
         EventModel.store_id == store_id,
         EventModel.is_staff == False,
         func.date(EventModel.timestamp) == today
     )
 
-    # ── Stage 1: Total Entries ─────────────────────────────
+    # Stage 1 — Entry
     total_entries = base.filter(
         EventModel.event_type == "ENTRY"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
     ).scalar() or 0
 
-    # ── Stage 2: Zone Visitors ─────────────────────────────
-    # Kitne log kisi bhi zone mein gaye
+    # Stage 2 — Zone visits — seedha count
     zone_visitors = base.filter(
         EventModel.event_type == "ZONE_ENTER"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
     ).scalar() or 0
 
-    # ── Stage 3: Billing Queue ─────────────────────────────
-    # Kitne log billing counter tak pahunche
+    # Stage 3 — Billing
     billing_visitors = base.filter(
         EventModel.event_type == "BILLING_QUEUE_JOIN"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
     ).scalar() or 0
 
-    # ── Stage 4: Purchases ─────────────────────────────────
-    # Kitne log actually purchase karke gaye
-    # BILLING_QUEUE_ABANDON nahi kiya matlab purchase kiya
+    # Stage 4 — Purchases
     abandoned = base.filter(
         EventModel.event_type == "BILLING_QUEUE_ABANDON"
     ).with_entities(
@@ -54,11 +48,11 @@ def get_funnel(store_id: str, db: Session = Depends(get_db)):
 
     purchases = max(0, billing_visitors - abandoned)
 
-    # ── Drop-off % calculate karo ─────────────────────────
     def dropoff(current, previous):
         if previous == 0:
             return 0.0
-        return round((1 - current / previous) * 100, 2)
+        lost = previous - current
+        return round((lost / previous) * 100, 2)
 
     return {
         "store_id": store_id,

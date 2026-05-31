@@ -1,39 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, date
-from typing import Optional
 
 from database import get_db, EventModel
 
 router = APIRouter()
 
-# ─── GET /stores/{store_id}/metrics ───────────────────────
 @router.get("/stores/{store_id}/metrics")
 def get_metrics(store_id: str, db: Session = Depends(get_db)):
-    
-    # Aaj ki date
+
     today = date.today()
 
-    # Sirf aaj ke customer events — staff exclude
-    base_query = db.query(EventModel).filter(
+    base = db.query(EventModel).filter(
         EventModel.store_id == store_id,
         EventModel.is_staff == False,
         func.date(EventModel.timestamp) == today
     )
 
     # ── 1. Unique Visitors ─────────────────────────────────
-    # Sirf ENTRY events se count karo — re-entry exclude
-    unique_visitors = base_query.filter(
+    unique_visitors = base.filter(
         EventModel.event_type == "ENTRY"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
     ).scalar() or 0
 
-    # ── 2. Conversion Rate ─────────────────────────────────
-    # Kitne visitors billing zone mein gaye
-    converted_visitors = base_query.filter(
-        EventModel.event_type.in_(["BILLING_QUEUE_JOIN"]),
+    # ── 2. Converted Visitors ──────────────────────────────
+    converted_visitors = base.filter(
+        EventModel.event_type == "BILLING_QUEUE_JOIN"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
     ).scalar() or 0
@@ -60,8 +54,7 @@ def get_metrics(store_id: str, db: Session = Depends(get_db)):
     }
 
     # ── 4. Queue Depth ─────────────────────────────────────
-    # Latest billing queue event se depth nikalo
-    latest_queue = base_query.filter(
+    latest_queue = base.filter(
         EventModel.event_type == "BILLING_QUEUE_JOIN"
     ).order_by(
         EventModel.timestamp.desc()
@@ -69,10 +62,10 @@ def get_metrics(store_id: str, db: Session = Depends(get_db)):
 
     queue_depth = 0
     if latest_queue and latest_queue.event_metadata:
-       queue_depth = latest_queue.event_metadata.get("queue_depth", 0) or 0
+        queue_depth = latest_queue.event_metadata.get("queue_depth", 0) or 0
 
     # ── 5. Abandonment Rate ────────────────────────────────
-    abandoned = base_query.filter(
+    abandoned = base.filter(
         EventModel.event_type == "BILLING_QUEUE_ABANDON"
     ).with_entities(
         func.count(func.distinct(EventModel.visitor_id))
@@ -82,7 +75,7 @@ def get_metrics(store_id: str, db: Session = Depends(get_db)):
         (abandoned / converted_visitors * 100), 2
     ) if converted_visitors > 0 else 0.0
 
-    # ── Handle Zero Traffic ────────────────────────────────
+    # ── Zero Traffic ───────────────────────────────────────
     if unique_visitors == 0:
         return {
             "store_id": store_id,
