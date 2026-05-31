@@ -23,7 +23,7 @@ class StoreEvent(BaseModel):
     dwell_ms: int = 0
     is_staff: bool = False
     confidence: float
-    metadata: EventMetadata = Field(default_factory=EventMetadata)
+    event_metadata: EventMetadata = Field(default_factory=EventMetadata)
 
 class IngestResponse(BaseModel):
     accepted: int

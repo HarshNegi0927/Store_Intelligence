@@ -68,8 +68,8 @@ def get_metrics(store_id: str, db: Session = Depends(get_db)):
     ).first()
 
     queue_depth = 0
-    if latest_queue and latest_queue.metadata:
-        queue_depth = latest_queue.metadata.get("queue_depth", 0) or 0
+    if latest_queue and latest_queue.event_metadata:
+       queue_depth = latest_queue.event_metadata.get("queue_depth", 0) or 0
 
     # ── 5. Abandonment Rate ────────────────────────────────
     abandoned = base_query.filter(
