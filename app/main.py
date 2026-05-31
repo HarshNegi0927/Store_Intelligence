@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 import logging
-
+from heatmap import router as heatmap_router
 from database import create_tables
 from ingestion import router as ingest_router
 from metrics import router as metrics_router
@@ -56,7 +56,7 @@ app.include_router(metrics_router)
 app.include_router(funnel_router)
 app.include_router(anomalies_router)
 app.include_router(health_router)
-
+app.include_router(heatmap_router)
 
 @app.on_event("startup")
 async def startup():
