@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Intelligence Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f0f13;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #1a1a2e;
+            border-bottom: 1px solid #2d2d44;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6c63ff, #3ecf8e);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #1a2e1a;
+            border: 1px solid #2d4a2d;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #3ecf8e;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #3ecf8e;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .container {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .store-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .store-selector label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .store-selector select {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .last-updated {
+            margin-left: auto;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .kpi-card:hover {
+            border-color: #6c63ff;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .kpi-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* Main grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        /* Funnel */
+        .funnel-stage {
+            margin-bottom: 12px;
+        }
+
+        .funnel-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .funnel-name {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .funnel-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .funnel-bar-bg {
+            background: #0f0f13;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .funnel-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .funnel-dropoff {
+            font-size: 11px;
+            color: #ef4444;
+            margin-top: 3px;
+        }
+
+        /* Heatmap */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .heatmap-zone {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: default;
+            transition: transform 0.2s;
+        }
+
+        .heatmap-zone:hover {
+            transform: scale(1.05);
+        }
+
+        .heatmap-zone-name {
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .heatmap-zone-score {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .heatmap-zone-label {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Anomalies */
+        .anomaly-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #0f0f13;
+        }
+
+        .anomaly-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .anomaly-type {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .anomaly-message {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .anomaly-action {
+            font-size: 11px;
+            color: #6c63ff;
+        }
+
+        .severity-CRITICAL { color: #ef4444; }
+        .severity-WARN { color: #f59e0b; }
+        .severity-INFO { color: #3ecf8e; }
+
+        /* Dwell Chart */
+        .dwell-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .dwell-zone {
+            font-size: 12px;
+            color: #94a3b8;
+            width: 130px;
+            flex-shrink: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .dwell-bar-bg {
+            flex: 1;
+            background: #0f0f13;
+            border-radius: 4px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        .dwell-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6c63ff, #3ecf8e);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            transition: width 0.5s ease;
+        }
+
+        .dwell-value {
+            font-size: 11px;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const API = "http://localhost:8000";
+        const STORE_ID = "STORE_BLR_001";
+        const REFRESH_INTERVAL = 5000;
+
+        // ── Helpers ──────────────────────────────────────
+        const fetchData = async (url) => {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        };
+
+        const getHeatColor = (score) => {
+            if (score >= 75) return { bg: "rgba(239,68,68,0.2)", border: "rgba(239,68,68,0.5)", text: "#ef4444" };
+            if (score >= 50) return { bg: "rgba(245,158,11,0.2)", border: "rgba(245,158,11,0.5)", text: "#f59e0b" };
+            if (score >= 25) return { bg: "rgba(108,99,255,0.2)", border: "rgba(108,99,255,0.5)", text: "#6c63ff" };
+            return { bg: "rgba(30,30,50,0.5)", border: "rgba(60,60,90,0.5)", text: "#64748b" };
+        };
+
+        const funnelColors = ["#6c63ff", "#3b82f6", "#3ecf8e", "#f59e0b"];
+
+        // ── Main App ──────────────────────────────────────
+        function App() {
+            const [metrics, setMetrics] = React.useState(null);
+            const [funnel, setFunnel] = React.useState(null);
+            const [heatmap, setHeatmap] = React.useState(null);
+            const [anomalies, setAnomalies] = React.useState(null);
+            const [health, setHealth] = React.useState(null);
+            const [lastUpdated, setLastUpdated] = React.useState(null);
+            const [error, setError] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+
+            const fetchAll = async () => {
+                try {
+                    const [m, f, h, a, he] = await Promise.all([
+                        fetchData(`${API}/stores/${STORE_ID}/metrics`),
+                        fetchData(`${API}/stores/${STORE_ID}/funnel`),
+                        fetchData(`${API}/stores/${STORE_ID}/heatmap`),
+                        fetchData(`${API}/stores/${STORE_ID}/anomalies`),
+                        fetchData(`${API}/health`),
+                    ]);
+                    setMetrics(m);
+                    setFunnel(f);
+                    setHeatmap(h);
+                    setAnomalies(a);
+                    setHealth(he);
+                    setLastUpdated(new Date().toLocaleTimeString());
+                    setError(null);
+                    setLoading(false);
+                } catch (err) {
+                    setError("API se connect nahi ho pa raha — kya API chal rahi hai?");
+                    setLoading(false);
+                }
+            };
+
+            React.useEffect(() => {
+                fetchAll();
+                const interval = setInterval(fetchAll, REFRESH_INTERVAL);
+                return () => clearInterval(interval);
+            }, []);
+
+            if (loading) return (
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",flexDirection:"column",gap:"16px"}}>
+                    <div style={{fontSize:"32px"}}>⚡</div>
+                    <div style={{color:"#94a3b8"}}>Loading Store Intelligence...</div>
+                </div>
+            );
+
+            const maxDwell = metrics?.avg_dwell_per_zone
+                ? Math.max(...Object.values(metrics.avg_dwell_per_zone), 1)
+                : 1;
+
+            return (
+                <div>
+                    {/* Header */}
+                    <div className="header">
+                        <div className="header-left">
+                            <div className="logo">🏪</div>
+                            <div>
+                                <h1>Store Intelligence</h1>
+                                <p>Brigade Road, Bangalore — {STORE_ID}</p>
+                            </div>
+                        </div>
+                        <div className="live-badge">
+                            <div className="live-dot"></div>
+                            LIVE — refreshing every 5s
+                        </div>
+                    </div>
+
+                    <div className="container">
+                        <div className="last-updated" style={{marginBottom:"16px"}}>
+                            {error
+                                ? <span style={{color:"#ef4444"}}>⚠️ {error}</span>
+                                : `Last updated: ${lastUpdated}`
+                            }
+                        </div>
+
+                        {/* KPI Cards */}
+                        <div className="kpi-grid">
+                            <div className="kpi-card">
+                                <div className="kpi-icon">👥</div>
+                                <div className="kpi-label">Unique Visitors</div>
+                                <div className="kpi-value">{metrics?.unique_visitors ?? 0}</div>
+                                <div className="kpi-sub">Today</div>
+                            </div>
+                            <div className="kpi-card">
+                                <div className="kpi-icon">💰</div>
+                                <div className="kpi-label">Conversion Rate</div>
+                                <div className="kpi-value" style={{color: metrics?.conversion_rate > 50 ? "#3ecf8e" : "#f59e0b"}}>
+                                    {metrics?.conversion_rate ?? 0}%
+                                </div>
+                                <div className="kpi-sub">{metrics?.converted_visitors ?? 0} purchased</div>
+                            </div>
+                            <div className="kpi-card">
+                                <div className="kpi-icon">🛒</div>
+                                <div className="kpi-label">Queue Depth</div>
+                                <div className="kpi-value" style={{color: (metrics?.queue_depth ?? 0) > 3 ? "#ef4444" : "#3ecf8e"}}>
+                                    {metrics?.queue_depth ?? 0}
+                                </div>
+                                <div className="kpi-sub">At billing counter</div>
+                            </div>
+                            <div className="kpi-card">
+                                <div className="kpi-icon">🚪</div>
+                                <div className="kpi-label">Abandonment Rate</div>
+                                <div className="kpi-value" style={{color: (metrics?.abandonment_rate ?? 0) > 20 ? "#ef4444" : "#3ecf8e"}}>
+                                    {metrics?.abandonment_rate ?? 0}%
+                                </div>
+                                <div className="kpi-sub">Left billing queue</div>
+                            </div>
+                            <div className="kpi-card">
+                                <div className="kpi-icon">🏥</div>
+                                <div className="kpi-label">API Health</div>
+                                <div className="kpi-value" style={{fontSize:"20px", color: health?.status === "healthy" ? "#3ecf8e" : "#ef4444"}}>
+                                    {health?.status === "healthy" ? "✅ Healthy" : "❌ Unhealthy"}
+                                </div>
+                                <div className="kpi-sub">{health?.overall_feed_status ?? "Unknown"}</div>
+                            </div>
+                        </div>
+
+                        {/* Main Grid */}
+                        <div className="main-grid">
+                            {/* Funnel */}
+                            <div className="card">
+                                <div className="card-title">📊 Conversion Funnel</div>
+                                {funnel?.funnel?.map((stage, i) => {
+                                    const maxCount = funnel.funnel[0]?.count || 1;
+                                    const pct = Math.round((stage.count / maxCount) * 100);
+                                    return (
+                                        <div key={i} className="funnel-stage">
+                                            <div className="funnel-header">
+                                                <span className="funnel-name">{stage.stage}</span>
+                                                <span className="funnel-count">{stage.count}</span>
+                                            </div>
+                                            <div className="funnel-bar-bg">
+                                                <div
+                                                    className="funnel-bar"
+                                                    style={{
+                                                        width: `${pct}%`,
+                                                        background: funnelColors[i]
+                                                    }}
+                                                />
+                                            </div>
+                                            {stage.dropoff_pct > 0 && (
+                                                <div className="funnel-dropoff">
+                                                    ↓ {stage.dropoff_pct}% dropped off
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                <div style={{marginTop:"12px", paddingTop:"12px", borderTop:"1px solid #2d2d44"}}>
+                                    <span style={{fontSize:"12px", color:"#94a3b8"}}>Overall conversion: </span>
+                                    <span style={{fontSize:"14px", fontWeight:"600", color:"#3ecf8e"}}>
+                                        {funnel?.summary?.overall_conversion_pct ?? 0}%
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Dwell Time */}
+                            <div className="card">
+                                <div className="card-title">⏱️ Avg Dwell Time per Zone</div>
+                                {metrics?.avg_dwell_per_zone && Object.keys(metrics.avg_dwell_per_zone).length > 0
+                                    ? Object.entries(metrics.avg_dwell_per_zone).map(([zone, secs]) => (
+                                        <div key={zone} className="dwell-bar">
+                                            <div className="dwell-zone">{zone.replace(/_/g, " ")}</div>
+                                            <div className="dwell-bar-bg">
+                                                <div
+                                                    className="dwell-bar-fill"
+                                                    style={{width: `${Math.round((secs / maxDwell) * 100)}%`}}
+                                                >
+                                                    <span className="dwell-value">{secs}s</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                    : <div className="loading">No dwell data yet</div>
+                                }
+                            </div>
+                        </div>
+
+                        {/* Bottom Grid */}
+                        <div className="bottom-grid">
+                            {/* Heatmap */}
+                            <div className="card">
+                                <div className="card-title">🔥 Zone Heatmap</div>
+                                <div style={{marginBottom:"8px", fontSize:"12px", color:"#64748b"}}>
+                                    Confidence: {heatmap?.data_confidence ?? "—"}
+                                    {heatmap?.data_confidence === "LOW" && " ⚠️ (less than 20 sessions)"}
+                                </div>
+                                {heatmap?.heatmap?.length > 0
+                                    ? (
+                                        <div className="heatmap-grid">
+                                            {heatmap.heatmap.map(zone => {
+                                                const colors = getHeatColor(zone.score);
+                                                return (
+                                                    <div
+                                                        key={zone.zone_id}
+                                                        className="heatmap-zone"
+                                                        style={{
+                                                            background: colors.bg,
+                                                            border: `1px solid ${colors.border}`
+                                                        }}
+                                                    >
+                                                        <div className="heatmap-zone-name" style={{color: colors.text}}>
+                                                            {zone.zone_id.replace(/_/g, " ")}
+                                                        </div>
+                                                        <div className="heatmap-zone-score" style={{color: colors.text}}>
+                                                            {zone.score}
+                                                        </div>
+                                                        <div className="heatmap-zone-label" style={{color: colors.text}}>
+                                                            {zone.label}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )
+                                    : <div className="loading">No heatmap data yet</div>
+                                }
+                            </div>
+
+                            {/* Anomalies */}
+                            <div className="card">
+                                <div className="card-title">🚨 Active Anomalies</div>
+                                {anomalies?.anomalies?.map((a, i) => {
+                                    const icons = {
+                                        BILLING_QUEUE_SPIKE: "🛒",
+                                        CONVERSION_DROP: "📉",
+                                        DEAD_ZONE: "💀",
+                                        ALL_CLEAR: "✅"
+                                    };
+                                    return (
+                                        <div key={i} className="anomaly-item">
+                                            <div className="anomaly-icon">{icons[a.type] ?? "⚠️"}</div>
+                                            <div>
+                                                <div className={`anomaly-type severity-${a.severity}`}>
+                                                    {a.type} — {a.severity}
+                                                </div>
+                                                <div className="anomaly-message">{a.message}</div>
+                                                <div className="anomaly-action">💡 {a.suggested_action}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+</body>
+</html>
