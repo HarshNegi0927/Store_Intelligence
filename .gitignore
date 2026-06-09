@@ -1,0 +1,6 @@
+echo "*.mp4" >> .gitignore
+echo "*.avi" >> .gitignore  
+echo "*.mov" >> .gitignore
+echo "*.mkv" >> .gitignore
+echo "data/clips/" >> .gitignore
+.env
