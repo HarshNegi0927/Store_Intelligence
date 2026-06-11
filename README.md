@@ -1,17 +1,31 @@
 # 🏪 Store Intelligence System
+### Real-time Retail Analytics from CCTV Footage
 
-A complete **retail analytics platform** that transforms raw CCTV footage into real-time store intelligence — from people detection to live business metrics.
+A complete end-to-end retail analytics platform built for **Purplle's physical stores** — transforms raw CCTV footage into real-time business intelligence.
+
+**North Star Metric:** Offline Store Conversion Rate = Visitors who purchased ÷ Total unique visitors
 
 ---
 
-## 🎯 What This Does
+## 🚀 Quick Start (5 commands)
 
-Apex Retail operates 40 physical stores with zero offline analytics. This system bridges that gap:
+```bash
+git clone https://github.com/HarshNegi0927/Store_Intelligence.git
+cd Store_Intelligence
+docker compose up --build
+```
 
-| Business Question | Where It's Answered |
+API: http://localhost:8000/docs  
+Dashboard: Open `dashboard/index.html` in browser
+
+---
+
+## 📊 What It Does
+
+| Business Question | Answer |
 |---|---|
 | How many customers visited today? | `/stores/{id}/metrics` → `unique_visitors` |
-| How many actually bought something? | `/stores/{id}/metrics` → `conversion_rate` |
+| How many actually bought? | `/stores/{id}/metrics` → `conversion_rate` |
 | Where are we losing customers? | `/stores/{id}/funnel` → drop-off % |
 | Which zones get attention but no sales? | `/stores/{id}/heatmap` → dwell vs funnel |
 | Is a queue building right now? | `/stores/{id}/anomalies` → `BILLING_QUEUE_SPIKE` |
@@ -19,76 +33,81 @@ Apex Retail operates 40 physical stores with zero offline analytics. This system
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture
 
 ```
 📹 Raw CCTV Clips
        │
        ▼
-🔍 Detection Layer        (YOLOv8 + ByteTrack)
-   • People detection
-   • Entry / Exit tracking
-   • Zone classification
-   • Staff exclusion
-   • Re-ID across cameras
+🔍 Detection Layer  (YOLOv8n + ByteTrack)
+   • Person detection per frame
+   • Entry/Exit via Y-axis movement  
+   • Zone classification via X-axis position
+   • Staff detection via presence ratio
+   • 2-second cooldown deduplication
        │
        ▼
-⚡ Event Stream            (Structured JSONL)
-   • ENTRY / EXIT events
-   • ZONE_ENTER / ZONE_EXIT / ZONE_DWELL
-   • BILLING_QUEUE_JOIN / ABANDON
-   • REENTRY detection
+⚡ Event Stream  (Structured JSON)
+   ENTRY / EXIT / REENTRY
+   ZONE_ENTER / ZONE_EXIT / ZONE_DWELL
+   BILLING_QUEUE_JOIN / BILLING_QUEUE_ABANDON
        │
        ▼
-🧠 Intelligence API        (FastAPI + PostgreSQL)
-   • Real-time metric computation
-   • Conversion funnel tracking
-   • Anomaly detection
-   • POS correlation
+🧠 Intelligence API  (FastAPI + PostgreSQL)
+   POST /events/ingest     → Idempotent batch ingestion
+   GET  /stores/{id}/metrics   → Real-time KPIs
+   GET  /stores/{id}/funnel    → Conversion funnel
+   GET  /stores/{id}/heatmap   → Zone popularity
+   GET  /stores/{id}/anomalies → Operational alerts
+   GET  /health            → System status
        │
        ▼
-📊 Live Dashboard          (React)
-   • Real-time visitor count
-   • Live conversion rate
-   • Queue depth monitor
-   • Zone heatmap
+📊 Live Dashboard  (React)
+   Real-time metrics updating every 5 seconds
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🎥 Running Detection Pipeline
 
-### Prerequisites
-- Docker & Docker Compose
-- Python 3.10+
-
-### 1. Clone the repo
-```bash
-git clone https://github.com/HarshNegi0927/Store_Intelligence.git
-cd Store_Intelligence
-```
-
-### 2. Start the API
-```bash
-docker compose up --build
-```
-
-### 3. Run detection pipeline on clips
+### Option 1 — Real CCTV Videos:
 ```bash
 cd pipeline
-pip install -r requirements.txt
-python run.sh --input ../data/clips/ --store STORE_BLR_002
+pip install ultralytics opencv-python requests supervision
 ```
 
-### 4. Open the dashboard
+Place videos in `data/clips/` folder:
 ```
-http://localhost:3000
+data/clips/
+├── CAM 1.mp4   # Top wall — Korean skincare brands
+├── CAM 2.mp4   # Bottom wall — Makeup brands  
+├── CAM 3.mp4   # Entry/Exit threshold
+├── CAM 4.mp4   # Warehouse (auto-skipped)
+└── CAM 5.mp4   # Billing counter
 ```
 
-### 5. Check API health
+Update path in `pipeline/detect.py`:
+```python
+VIDEO_DIR = r"path/to/your/videos"
 ```
-http://localhost:8000/health
+
+Run:
+```bash
+python pipeline/detect.py
 ```
+
+### Option 2 — Synthetic Data from POS (Recommended for testing):
+```bash
+python pipeline/generate_events.py
+```
+Generates realistic visitor sessions from real POS transaction data.  
+**Result: 33 visitors, 72.73% conversion rate, full funnel analytics**
+
+### Option 3 — Purplle Native Event Format:
+```bash
+python pipeline/converter.py path/to/events.jsonl
+```
+Converts Purplle's internal event schema to our API format.
 
 ---
 
@@ -96,12 +115,37 @@ http://localhost:8000/health
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/events/ingest` | Ingest batch of detection events (up to 500) |
-| `GET` | `/stores/{id}/metrics` | Real-time KPIs — visitors, conversion, dwell |
-| `GET` | `/stores/{id}/funnel` | Conversion funnel with drop-off % |
-| `GET` | `/stores/{id}/heatmap` | Zone visit frequency + avg dwell (0–100) |
-| `GET` | `/stores/{id}/anomalies` | Active anomalies with severity + suggested action |
-| `GET` | `/health` | Service status + stale feed detection |
+| `POST` | `/events/ingest` | Batch ingest (up to 500 events), idempotent |
+| `GET` | `/stores/{id}/metrics` | Unique visitors, conversion rate, dwell time |
+| `GET` | `/stores/{id}/funnel` | Entry → Zone → Billing → Purchase funnel |
+| `GET` | `/stores/{id}/heatmap` | Zone popularity scores (0-100) |
+| `GET` | `/stores/{id}/anomalies` | Queue spikes, conversion drops, dead zones |
+| `GET` | `/health` | Service health + stale feed detection |
+
+---
+
+## 🧠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Detection | YOLOv8n + ByteTrack |
+| API | FastAPI + PostgreSQL |
+| ORM | SQLAlchemy |
+| Validation | Pydantic v2 |
+| Dashboard | React (CDN) |
+| Container | Docker Compose |
+| Testing | Pytest — 82% coverage, 26 tests |
+
+---
+
+## 🧪 Running Tests
+
+```bash
+pip install pytest pytest-cov httpx
+pytest tests/ -v --cov=app --cov-report=term-missing
+```
+
+**Result: 26 passed, 82% coverage**
 
 ---
 
@@ -111,80 +155,65 @@ http://localhost:8000/health
 store-intelligence/
 ├── pipeline/
 │   ├── detect.py          # YOLOv8 detection + tracking
-│   ├── tracker.py         # Re-ID / ByteTrack logic
+│   ├── tracker.py         # Re-ID / tracking logic
 │   ├── emit.py            # Event schema + emission
-│   └── run.sh             # One command to process all clips
+│   ├── generate_events.py # Synthetic data from POS CSV
+│   └── converter.py       # Purplle native schema adapter
 ├── app/
 │   ├── main.py            # FastAPI entrypoint
 │   ├── models.py          # Pydantic event schema
+│   ├── database.py        # SQLAlchemy + PostgreSQL
 │   ├── ingestion.py       # Ingest + deduplication
-│   ├── metrics.py         # Real-time metric computation
-│   ├── funnel.py          # Funnel + session logic
+│   ├── metrics.py         # Real-time KPI computation
+│   ├── funnel.py          # Conversion funnel logic
 │   ├── anomalies.py       # Anomaly detection engine
+│   ├── heatmap.py         # Zone heatmap scoring
 │   └── health.py          # Health check endpoint
 ├── tests/
-│   ├── test_pipeline.py
+│   ├── conftest.py
 │   ├── test_metrics.py
-│   └── test_anomalies.py
+│   ├── test_anomalies.py
+│   └── test_pipeline.py
 ├── docs/
-│   ├── DESIGN.md          # Architecture + AI-assisted decisions
+│   ├── DESIGN.md          # Architecture + AI decisions
 │   └── CHOICES.md         # Tech decision rationale
-├── dashboard/             # React live dashboard
-├── data/                  # CCTV clips + store layouts
+├── dashboard/
+│   └── index.html         # Live React dashboard
+├── data/
+│   └── store_layout.json  # Brigade Road, Bangalore store
 ├── docker-compose.yml
+├── Dockerfile
 └── README.md
 ```
 
 ---
 
-## 🧠 Tech Stack
+## 🔑 Key Engineering Decisions
 
-| Layer | Technology |
-|---|---|
-| Detection | YOLOv8 + ByteTrack |
-| Re-ID | OSNet / Bounding Box Trajectory |
-| API | FastAPI (Python) |
-| Database | PostgreSQL |
-| Dashboard | React |
-| Container | Docker Compose |
-| Testing | Pytest (>70% coverage) |
+**Detection:** YOLOv8n chosen for CPU-only compatibility. Confidence threshold 0.3 to handle partial occlusions.
 
----
+**Zone Classification:** X-axis position mapping (left/center/right per camera) — deterministic, fast, no additional model needed.
 
-## 📊 Key Features
+**Staff Detection:** Presence ratio heuristic (>60% frames = staff) — works well on longer footage.
 
-- **Real-time people detection** — YOLOv8 on 1080p 15fps CCTV footage
-- **Person Re-ID** — same visitor tracked across multiple cameras
-- **Staff exclusion** — uniform detection excludes staff from customer metrics
-- **Re-entry handling** — same person returning counted correctly
-- **POS correlation** — visitor sessions correlated with transactions by time window
-- **Anomaly detection** — queue spikes, conversion drops, dead zones
-- **Idempotent ingestion** — safe to replay events without double counting
-- **Graceful degradation** — structured errors, no raw stack traces
+**Idempotency:** Event ingestion checks `event_id` before insert — safe to replay pipeline.
 
----
-
-## 🧪 Running Tests
-
-```bash
-cd tests
-pytest --cov=app --cov-report=term-missing
-```
+**Cross-camera Re-ID:** Known limitation — each camera tracked independently. Future improvement: OSNet appearance-based Re-ID.
 
 ---
 
 ## 📝 Documentation
 
-- [`DESIGN.md`](docs/DESIGN.md) — Full architecture overview + AI-assisted decisions
-- [`CHOICES.md`](docs/CHOICES.md) — Detection model, schema, and API design rationale
+- [`DESIGN.md`](docs/DESIGN.md) — Full architecture + AI-assisted decisions
+- [`CHOICES.md`](docs/CHOICES.md) — Detection model, schema, API architecture rationale
 
 ---
 
 ## 👨‍💻 Author
 
-**Harsh Negi**  
+**Harsh Negi** — MNNIT Allahabad  
 [GitHub](https://github.com/HarshNegi0927)
 
 ---
 
-*Built as part of Purplle Engineering Hiring Challenge 2026*
+*Built for Purplle Engineering Hiring Challenge 2026 — Round 2*
